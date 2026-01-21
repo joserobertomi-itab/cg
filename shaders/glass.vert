@@ -1,0 +1,32 @@
+attribute vec3 aPosition;
+attribute vec3 aNormal;
+attribute vec2 aTexCoord;
+
+uniform mat4 uModelMatrix;
+uniform mat4 uViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform vec3 uCameraPos;
+uniform vec4 uClipPlane;
+
+varying vec3 vNormal;
+varying vec3 vPosition;
+varying vec2 vTexCoord;
+varying float vClipDist;
+varying vec4 vClipPos;
+
+void main() {
+    vec4 worldPosition = uModelMatrix * vec4(aPosition, 1.0);
+    vPosition = worldPosition.xyz;
+    vNormal = normalize(mat3(uModelMatrix) * aNormal);
+    
+    vTexCoord = aTexCoord;
+    vClipDist = dot(uClipPlane, vec4(vPosition, 1.0));
+
+#ifdef USE_GL_CLIP_DISTANCE
+    gl_ClipDistance[0] = vClipDist;
+#endif
+    
+    vec4 clipPos = uProjectionMatrix * uViewMatrix * worldPosition;
+    vClipPos = clipPos;
+    gl_Position = clipPos;
+}

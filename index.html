@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+
+        #c {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            z-index: 100;
+        }
+
+        #controls label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        #transparencySlider {
+            width: 200px;
+            margin-bottom: 5px;
+        }
+
+        #transparencyValue {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        #webgl2Error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(200, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        #webgl2Error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="webgl2Error">
+        <h2>WebGL2 não suportado</h2>
+        <p>Seu navegador não suporta WebGL2.</p>
+        <p>Por favor, use um navegador moderno como Chrome, Firefox, Edge ou Safari.</p>
+    </div>
+    <canvas id="c"></canvas>
+    <div id="controls">
+        <label for="transparencySlider">Transparency (uTransparency):</label>
+        <input type="range" id="transparencySlider" min="0" max="1" step="0.01" value="0.5">
+        <div id="transparencyValue">0.50</div>
+    </div>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
