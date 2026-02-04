@@ -464,7 +464,7 @@ async function init() {
     // Generate geometries
     const cubeGeo = createCube(0.5);
     const sphereGeo = createSphere(0.6, 32);
-    const planeGeo = createPlane(10, 10, 4); // Large plane (glass) - will be rotated to vertical XY plane
+    const planeGeo = createPlane(4, 4, 1); // Large plane (glass) in XZ plane
 
     // Create buffers for cube
     const cubePosBuffer = createBuffer(gl, cubeGeo.positions);
@@ -591,15 +591,15 @@ function render(time) {
 
     updateCamera(deltaTime);
     const lightDir = vec3Normalize(new Float32Array([1, 1, 1]));
-    // Glass plane is at Z=0 (vertical plane in XY plane)
-    const clipPlane = new Float32Array([0, 0, 1, 0]); // z >= 0 (in front of mirror)
+    // Glass plane is at Z=0 (XY plane)
+    const clipPlane = new Float32Array([0, 0, 1, 0]);
     const noClipPlane = new Float32Array([0, 0, 0, 1]);
     const cubeModel = mat4.multiply(
-        mat4.translate(new Float32Array([-1.0, 0.5, 1.5])), // Cube in front of glass (z > 0)
+        mat4.translate(new Float32Array([-1.0, 0, 1.5])),
         mat4.identity()
     );
     const sphereModel = mat4.multiply(
-        mat4.translate(new Float32Array([1.0, 0.5, -1.5])), // Sphere behind glass (z < 0)
+        mat4.translate(new Float32Array([1.0, 0, -1.5])),
         mat4.identity()
     );
     const cubeNormalMatrix = mat4.transpose(mat4.invert(cubeModel));
@@ -609,40 +609,31 @@ function render(time) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, baseTexture);
 
-    // ========== PLANAR REFLECTION (mirror at z=0) ==========
-    // 1. Virtual camera: reflect eye across z=0 (vertical plane), reflect view direction across z.
-    const reflectionEye = new Float32Array([
-        camera.position[0],
-        camera.position[1],
-        -camera.position[2] // Flip Z coordinate for mirror reflection
-    ]);
-    const reflectionForward = new Float32Array([
-        camera.forward[0],
-        camera.forward[1],
-        -camera.forward[2] // Flip Z component of view direction
-    ]);
-    const reflectionTarget = vec3Add(reflectionEye, vec3Scale(reflectionForward, 500.0));
-    const reflectionView = mat4.lookAt(reflectionEye, reflectionTarget, new Float32Array([0, 1, 0]));
-
-    // Light direction reflected across z=0 so shading in the mirror matches what you'd see.
-    const reflectionLightDir = vec3Normalize(new Float32Array([lightDir[0], lightDir[1], -lightDir[2]]));
-
-    // 2. Render reflection: bind FBO, draw only geometry on same side of mirror (z >= 0).
+    // --- Pass 1: reflection into FBO (no glass plane) ---
     gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFbo);
     gl.viewport(0, 0, fboWidth, fboHeight);
     gl.clearColor(0.05, 0.05, 0.05, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.frontFace(gl.CW); // reflected view flips winding
 
+    // Mirror camera across plane Z=0:
+    // Reflect position: (x, y, z) -> (x, y, -z)
+    // Reflect direction: (fx, fy, fz) -> (fx, fy, -fz)
+    const mirroredPos = new Float32Array([camera.position[0], camera.position[1], -camera.position[2]]);
+    const mirroredForward = new Float32Array([camera.forward[0], camera.forward[1], -camera.forward[2]]);
+    const mirroredTarget = vec3Add(mirroredPos, mirroredForward);
+    const mirroredView = mat4.lookAt(mirroredPos, mirroredTarget, new Float32Array([0, 1, 0]));
+
+    // Reflected view flips handedness: front faces become back faces. Flip so we don't cull them.
+    gl.frontFace(gl.CW);
     gl.useProgram(standardProgram);
     gl.bindVertexArray(cubeVao);
     setUniforms(gl, standardProgram, {
         uModel: cubeModel,
-        uView: reflectionView,
+        uView: mirroredView,
         uProj: projectionMatrix,
         uNormalMatrix: cubeNormalMatrix,
-        uLightDir: reflectionLightDir,
-        uCameraPos: reflectionEye,
+        uLightDir: lightDir,
+        uCameraPos: mirroredPos,
         uTransparency: 0.0,
         uColor: [0.8, 0.3, 0.3],
         uBaseTex: 0,
@@ -653,18 +644,17 @@ function render(time) {
     gl.bindVertexArray(sphereVao);
     setUniforms(gl, standardProgram, {
         uModel: sphereModel,
-        uView: reflectionView,
+        uView: mirroredView,
         uProj: projectionMatrix,
         uNormalMatrix: sphereNormalMatrix,
-        uLightDir: reflectionLightDir,
-        uCameraPos: reflectionEye,
+        uLightDir: lightDir,
+        uCameraPos: mirroredPos,
         uTransparency: 0.0,
         uColor: [0.3, 0.8, 0.3],
         uBaseTex: 0,
         uClipPlane: clipPlane
     });
     gl.drawElements(gl.TRIANGLES, sphereIndexCount, gl.UNSIGNED_SHORT, 0);
-
     gl.frontFace(gl.CCW);
 
     // --- Pass 2: main scene ---
@@ -707,11 +697,11 @@ function render(time) {
     });
     gl.drawElements(gl.TRIANGLES, sphereIndexCount, gl.UNSIGNED_SHORT, 0);
 
-    // Render glass plane at Z=0 (vertical plane in XY plane)
+    // Render glass plane at Z=0 (plane mesh rotated from XZ to XY)
     gl.useProgram(glassProgram);
     gl.bindVertexArray(planeVao);
 
-    const planeModel = mat4.rotateX(-Math.PI / 2); // Rotate to vertical XY plane at z=0
+    const planeModel = mat4.rotateX(-Math.PI / 2);
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, reflectionColorTex);
@@ -720,7 +710,7 @@ function render(time) {
         uModelMatrix: planeModel,
         uViewMatrix: viewMatrix,
         uProjectionMatrix: projectionMatrix,
-        uReflectionViewMatrix: reflectionView,
+        uReflectionViewMatrix: mirroredView,
         uReflectionProjectionMatrix: projectionMatrix,
         uTransparency: transparency,
         uColor: [0.7, 0.9, 1.0],
@@ -728,17 +718,15 @@ function render(time) {
         uBaseTex: 0,
         uReflectionTex: 1,
         uCameraPos: eye,
-        uClipPlane: noClipPlane // Don't clip the glass plane itself
+        uClipPlane: clipPlane
     });
 
-    gl.disable(gl.CULL_FACE); // Disable culling for double-sided glass
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.depthMask(false);
     gl.drawElements(gl.TRIANGLES, planeIndexCount, gl.UNSIGNED_SHORT, 0);
     gl.depthMask(true);
     gl.disable(gl.BLEND);
-    gl.enable(gl.CULL_FACE); // Re-enable culling
 
     // Debug quad overlay (F toggle)
     if (debugEnabled && debugProgram && debugVao) {
