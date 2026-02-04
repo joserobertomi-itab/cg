@@ -356,6 +356,16 @@ function updateCamera(deltaTime) {
     camera.viewMatrix = mat4.lookAt(camera.position, target, worldUp);
 }
 
+function reflectPointAcrossPlane(point, planeNormal, planeD) {
+    const dist = vec3Dot(planeNormal, point) + planeD;
+    return vec3Subtract(point, vec3Scale(planeNormal, 2 * dist));
+}
+
+function reflectDirectionAcrossPlane(direction, planeNormal) {
+    const dist = vec3Dot(planeNormal, direction);
+    return vec3Subtract(direction, vec3Scale(planeNormal, 2 * dist));
+}
+
 function setupInput() {
     canvas.addEventListener('click', () => {
         canvas.requestPointerLock();
@@ -593,6 +603,8 @@ function render(time) {
     const lightDir = vec3Normalize(new Float32Array([1, 1, 1]));
     // Glass plane is at Z=0 (XY plane)
     const clipPlane = new Float32Array([0, 0, 1, 0]);
+    const planeNormal = vec3Normalize(new Float32Array([clipPlane[0], clipPlane[1], clipPlane[2]]));
+    const planeD = clipPlane[3];
     const noClipPlane = new Float32Array([0, 0, 0, 1]);
     const cubeModel = mat4.multiply(
         mat4.translate(new Float32Array([-1.0, 0, 1.5])),
@@ -615,13 +627,12 @@ function render(time) {
     gl.clearColor(0.05, 0.05, 0.05, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Mirror camera across plane Z=0:
-    // Reflect position: (x, y, z) -> (x, y, -z)
-    // Reflect direction: (fx, fy, fz) -> (fx, fy, -fz)
-    const mirroredPos = new Float32Array([camera.position[0], camera.position[1], -camera.position[2]]);
-    const mirroredForward = new Float32Array([camera.forward[0], camera.forward[1], -camera.forward[2]]);
+    // Mirror camera across the glass plane (clipPlane)
+    const mirroredPos = reflectPointAcrossPlane(camera.position, planeNormal, planeD);
+    const mirroredForward = reflectDirectionAcrossPlane(camera.forward, planeNormal);
     const mirroredTarget = vec3Add(mirroredPos, mirroredForward);
-    const mirroredView = mat4.lookAt(mirroredPos, mirroredTarget, new Float32Array([0, 1, 0]));
+    const mirroredUp = reflectDirectionAcrossPlane(new Float32Array([0, 1, 0]), planeNormal);
+    const mirroredView = mat4.lookAt(mirroredPos, mirroredTarget, mirroredUp);
 
     // Reflected view flips handedness: front faces become back faces. Flip so we don't cull them.
     gl.frontFace(gl.CW);

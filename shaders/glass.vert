@@ -7,7 +7,6 @@ uniform mat4 uViewMatrix;
 uniform mat4 uProjectionMatrix;
 uniform mat4 uReflectionViewMatrix;
 uniform mat4 uReflectionProjectionMatrix;
-uniform vec3 uCameraPos;
 uniform vec4 uClipPlane;
 
 varying vec3 vNormal;
