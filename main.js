@@ -634,8 +634,11 @@ function render(time) {
     const mirroredUp = reflectDirectionAcrossPlane(new Float32Array([0, 1, 0]), planeNormal);
     const mirroredView = mat4.lookAt(mirroredPos, mirroredTarget, mirroredUp);
 
-    // Reflected view flips handedness: front faces become back faces. Flip so we don't cull them.
-    gl.frontFace(gl.CW);
+    // When we rebuild the mirrored camera with lookAt() (using reflected forward + reflected up),
+    // the resulting view basis is typically right-handed again, so triangle winding does NOT need
+    // to be flipped. Forcing gl.frontFace(gl.CW) here can make meshes look inside-out.
+    gl.frontFace(gl.CCW);
+    gl.cullFace(gl.BACK);
     gl.useProgram(standardProgram);
     gl.bindVertexArray(cubeVao);
     setUniforms(gl, standardProgram, {
@@ -666,6 +669,7 @@ function render(time) {
         uClipPlane: clipPlane
     });
     gl.drawElements(gl.TRIANGLES, sphereIndexCount, gl.UNSIGNED_SHORT, 0);
+    // Keep default winding for subsequent passes.
     gl.frontFace(gl.CCW);
 
     // --- Pass 2: main scene ---
