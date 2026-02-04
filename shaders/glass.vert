@@ -5,6 +5,8 @@ attribute vec2 aTexCoord;
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
 uniform mat4 uProjectionMatrix;
+uniform mat4 uReflectionViewMatrix;
+uniform mat4 uReflectionProjectionMatrix;
 uniform vec3 uCameraPos;
 uniform vec4 uClipPlane;
 
@@ -13,6 +15,7 @@ varying vec3 vPosition;
 varying vec2 vTexCoord;
 varying float vClipDist;
 varying vec4 vClipPos;
+varying vec4 vReflectionClipPos;
 
 void main() {
     vec4 worldPosition = uModelMatrix * vec4(aPosition, 1.0);
@@ -28,5 +31,6 @@ void main() {
     
     vec4 clipPos = uProjectionMatrix * uViewMatrix * worldPosition;
     vClipPos = clipPos;
+    vReflectionClipPos = uReflectionProjectionMatrix * uReflectionViewMatrix * worldPosition;
     gl_Position = clipPos;
 }

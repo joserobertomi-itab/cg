@@ -12,6 +12,7 @@ varying vec3 vPosition;
 varying vec2 vTexCoord;
 varying float vClipDist;
 varying vec4 vClipPos;
+varying vec4 vReflectionClipPos;
 
 void main() {
     // Fallback clipping when gl_ClipDistance is unavailable
@@ -23,16 +24,20 @@ void main() {
     // Fresnel (stronger at grazing angles)
     float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
 
-    // Screen-space UV for reflection sampling
-    vec2 screenUV = (vClipPos.xy / vClipPos.w) * 0.5 + 0.5;
-    screenUV = clamp(screenUV, 0.0, 1.0);
-
-    // Sample textures
     vec3 baseColor = texture2D(uBaseTex, vTexCoord).rgb;
-    vec3 reflColor = texture2D(uReflectionTex, screenUV).rgb;
-
-    // Dark glass base + fresnel reflection
     vec3 tintedBase = baseColor * uColor * 0.35;
+
+    // Reflection UV: project this mirror fragment with the reflection camera (same view/proj
+    // used to render the reflection texture). Sample only when in front (w > 0).
+    float reflW = vReflectionClipPos.w;
+    vec3 reflColor = tintedBase * 0.5;
+    if (reflW > 0.01) {
+        vec2 ndc = vReflectionClipPos.xy / reflW;
+        vec2 screenUV = ndc * 0.5 + 0.5;
+        screenUV = clamp(screenUV, 0.0, 1.0);
+        reflColor = texture2D(uReflectionTex, screenUV).rgb;
+    }
+
     vec3 color = mix(tintedBase, reflColor, fresnel);
 
     // Alpha: controlled by transparency and boosted by fresnel

@@ -225,6 +225,32 @@ export function vec3Scale(v, s) {
     return new Float32Array([v[0] * s, v[1] * s, v[2] * s]);
 }
 
+/**
+ * Reflection matrix across plane z=0 (col-major).
+ * Transforms (x, y, z) -> (x, y, -z). Use: view_reflected = view * reflectZ.
+ */
+export function mat4ReflectZ() {
+    return new Float32Array([
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, -1, 0,
+        0, 0, 0, 1
+    ]);
+}
+
+/**
+ * Reflection matrix across plane y=0 (col-major).
+ * Transforms (x, y, z) -> (x, -y, z). Use for horizontal floor/mirror reflections.
+ */
+export function mat4ReflectY() {
+    return new Float32Array([
+        1, 0, 0, 0,
+        0, -1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    ]);
+}
+
 // Export mat4 namespace for convenience
 export const mat4 = {
     identity: mat4Identity,
@@ -236,7 +262,9 @@ export const mat4 = {
     rotateX: mat4RotateX,
     scale: mat4Scale,
     invert: mat4Invert,
-    transpose: mat4Transpose
+    transpose: mat4Transpose,
+    reflectZ: mat4ReflectZ,
+    reflectY: mat4ReflectY
 };
 
 // Test: lookAt * inverse(lookAt) ≈ identity
