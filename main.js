@@ -624,16 +624,16 @@ function render(time) {
     const planeNormal = vec3Normalize(new Float32Array([clipPlane[0], clipPlane[1], clipPlane[2]]));
     const planeD = clipPlane[3];
     const noClipPlane = new Float32Array([0, 0, 0, 1]);
-    // Cube rotates in place at position (-1.0, 1, cubeDistance)
+    // Cube rotates in place at position (-1.0, 2.0, cubeDistance)
     // Create rotation matrix
     const cubeRotation = mat4.rotateY(now * 0.8);
     // Apply translation directly to the rotation matrix
     const cubeModel = new Float32Array(cubeRotation);
     cubeModel[12] = -1.0; // x translation
-    cubeModel[13] = 1.0;  // y translation
+    cubeModel[13] = 2.0;  // y translation
     cubeModel[14] = cubeDistance;  // z translation
     const sphereModel = mat4.multiply(
-        mat4.translate(new Float32Array([1.0, 1, -1.5])),
+        mat4.translate(new Float32Array([1.0, 2.0, -1.5])),
         mat4.identity()
     );
     const cubeNormalMatrix = mat4.transpose(mat4.invert(cubeModel));
