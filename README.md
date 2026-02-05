@@ -57,7 +57,6 @@ The scene contains:
 | **A / D** | Strafe left / right |
 | **Space** | Move up |
 | **Shift** | Move down |
-| **F** | Toggle debug view (shows reflection FBO) |
 | **Transparency Slider** | Adjust glass transparency (0.0 - 1.0) |
 | **Cube Distance Slider** | Adjust cube position (0.5 - 10.0) |
 
@@ -75,7 +74,7 @@ This project fulfills all technical requirements for the Computer Graphics assig
 
 ### ✅ 2. Dynamic Reflection & Transparency
 - **Multi-pass rendering**: Two-pass system (reflection + main scene)
-- **Framebuffer**: Offscreen FBO renders mirrored scene
+- **Framebuffer**: Offscreen renders mirrored scene
 - **No cubemaps**: Uses planar reflection with mirrored camera
 - **Technique**: Similar to shadow mapping approach
 
@@ -115,7 +114,7 @@ This project fulfills all technical requirements for the Computer Graphics assig
 
 ```
 ┌─────────────────────────────────────────┐
-│  PASS 1: Reflection (Offscreen FBO)    │
+│  PASS 1: Reflection (Offscreen)         │
 ├─────────────────────────────────────────┤
 │ 1. Mirror camera across glass plane     │
 │ 2. Apply clipping plane (clip Z < 0)    │
@@ -217,7 +216,7 @@ const clipPlane = new Float32Array([0, 0, 1, 0]);
 - Multi-pass rendering orchestration
 - Input handling (keyboard, mouse, pointer lock)
 - Animation loop with delta time
-- FBO management and resizing
+- Reflection management and resizing
 
 #### `gl.js` (284 lines)
 - WebGL2 context initialization
@@ -329,7 +328,6 @@ All matrix and vector operations implemented from scratch:
 - **Adjust transparency slider** to lower values
 - **Move camera** to view glass at grazing angle (more Fresnel)
 - **Check cube distance slider** - ensure cube is visible in reflection
-- **Toggle debug mode** (F) to verify FBO is rendering
 
 ### Controls Not Working
 - **Click canvas** to activate pointer lock
