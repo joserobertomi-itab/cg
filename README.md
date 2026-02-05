@@ -198,7 +198,6 @@ const clipPlane = new Float32Array([0, 0, 1, 0]);
 │   └── glass.frag          # Fragment shader for glass plane
 │
 ├── README.md               # This file
-├── ARCHITECTURE.md         # Technical architecture documentation
 └── trabalho2025cg.pdf      # Assignment specification
 ```
 
