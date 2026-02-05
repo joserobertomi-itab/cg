@@ -37,20 +37,31 @@
             z-index: 100;
         }
 
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
         #controls label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-size: 14px;
+            font-weight: 500;
         }
 
-        #transparencySlider {
+        #controls input[type="range"] {
             width: 200px;
             margin-bottom: 5px;
+            cursor: pointer;
         }
 
-        #transparencyValue {
+        .value-display {
             font-size: 12px;
             color: #aaa;
+            font-family: monospace;
         }
 
         #webgl2Error {
@@ -81,9 +92,16 @@
     </div>
     <canvas id="c"></canvas>
     <div id="controls">
-        <label for="transparencySlider">Transparency (uTransparency):</label>
-        <input type="range" id="transparencySlider" min="0" max="1" step="0.01" value="0.5">
-        <div id="transparencyValue">0.50</div>
+        <div class="control-group">
+            <label for="transparencySlider">Transparency (uTransparency):</label>
+            <input type="range" id="transparencySlider" min="0" max="1" step="0.01" value="0.5">
+            <div id="transparencyValue" class="value-display">0.50</div>
+        </div>
+        <div class="control-group">
+            <label for="cubeDistanceSlider">Cube Distance from Plane:</label>
+            <input type="range" id="cubeDistanceSlider" min="0.5" max="10" step="0.1" value="2.5">
+            <div id="cubeDistanceValue" class="value-display">2.50</div>
+        </div>
     </div>
     <script type="module" src="main.js"></script>
 </body>

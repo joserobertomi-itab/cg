@@ -24,6 +24,7 @@ import {
 let gl;
 let canvas;
 let transparency = 0.5;
+let cubeDistance = 2.5;
 
 // Camera (first-person flyby)
 const camera = {
@@ -560,9 +561,26 @@ async function init() {
     const slider = document.getElementById('transparencySlider');
     const valueDisplay = document.getElementById('transparencyValue');
     
+    // Initialize slider value
+    slider.value = transparency;
+    valueDisplay.textContent = transparency.toFixed(2);
+    
     slider.addEventListener('input', (e) => {
         transparency = parseFloat(e.target.value);
         valueDisplay.textContent = transparency.toFixed(2);
+    });
+
+    // Setup cube distance slider
+    const cubeSlider = document.getElementById('cubeDistanceSlider');
+    const cubeValueDisplay = document.getElementById('cubeDistanceValue');
+    
+    // Initialize slider value
+    cubeSlider.value = cubeDistance;
+    cubeValueDisplay.textContent = cubeDistance.toFixed(2);
+    
+    cubeSlider.addEventListener('input', (e) => {
+        cubeDistance = parseFloat(e.target.value);
+        cubeValueDisplay.textContent = cubeDistance.toFixed(2);
     });
 
     // Handle resize
@@ -606,14 +624,14 @@ function render(time) {
     const planeNormal = vec3Normalize(new Float32Array([clipPlane[0], clipPlane[1], clipPlane[2]]));
     const planeD = clipPlane[3];
     const noClipPlane = new Float32Array([0, 0, 0, 1]);
-    // Cube rotates in place at position (-1.0, 1, 2.5)
+    // Cube rotates in place at position (-1.0, 1, cubeDistance)
     // Create rotation matrix
     const cubeRotation = mat4.rotateY(now * 0.8);
     // Apply translation directly to the rotation matrix
     const cubeModel = new Float32Array(cubeRotation);
     cubeModel[12] = -1.0; // x translation
     cubeModel[13] = 1.0;  // y translation
-    cubeModel[14] = 2.5;  // z translation
+    cubeModel[14] = cubeDistance;  // z translation
     const sphereModel = mat4.multiply(
         mat4.translate(new Float32Array([1.0, 1, -1.5])),
         mat4.identity()
