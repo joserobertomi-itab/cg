@@ -395,7 +395,10 @@ function setupInput() {
             case 'ShiftRight':
                 inputState.up = -1; break;
             case 'KeyF':
-                if (!e.repeat) debugEnabled = !debugEnabled;
+                if (!e.repeat) {
+                    debugEnabled = !debugEnabled;
+                    console.log('Debug mode:', debugEnabled ? 'ON' : 'OFF');
+                }
                 break;
         }
     });
@@ -468,6 +471,12 @@ async function init() {
         }
     `;
     debugProgram = createProgram(gl, debugVertSource, debugFragSource);
+    
+    if (debugProgram) {
+        console.log('Debug program created successfully');
+    } else {
+        console.error('Failed to create debug program');
+    }
 
     // Create procedural texture
     baseTexture = createProceduralTexture(gl, 512);
@@ -555,6 +564,8 @@ async function init() {
             { location: dbgPosLoc, size: 2, bufferIndex: 0 },
             { location: dbgUvLoc, size: 2, bufferIndex: 1 }
         ], [quadPosBuffer, quadUvBuffer], quadIndexBuffer);
+        
+        console.log('Debug VAO created, press F to toggle debug view');
     }
 
     // Setup transparency slider

@@ -107,8 +107,6 @@ This project fulfills all technical requirements for the Computer Graphics assig
 - **Interactive**: Camera movement, adjustable parameters
 - **Performance**: 60 FPS on modern hardware
 
-**See `COMPLIANCE.md` for detailed verification with code references.**
-
 ---
 
 ## 🏗️ Technical Architecture
@@ -201,7 +199,6 @@ const clipPlane = new Float32Array([0, 0, 1, 0]);
 │   └── glass.frag          # Fragment shader for glass plane
 │
 ├── README.md               # This file
-├── COMPLIANCE.md           # Detailed requirements verification
 ├── ARCHITECTURE.md         # Technical architecture documentation
 └── trabalho2025cg.pdf      # Assignment specification
 ```
