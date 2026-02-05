@@ -58,9 +58,6 @@ let reflectionColorTex;
 let reflectionDepth;
 let fboWidth = 0;
 let fboHeight = 0;
-let debugProgram;
-let debugVao, debugIndexCount;
-let debugEnabled = false;
 
 // Matrices
 let projectionMatrix;
@@ -394,12 +391,6 @@ function setupInput() {
             case 'ShiftLeft':
             case 'ShiftRight':
                 inputState.up = -1; break;
-            case 'KeyF':
-                if (!e.repeat) {
-                    debugEnabled = !debugEnabled;
-                    console.log('Debug mode:', debugEnabled ? 'ON' : 'OFF');
-                }
-                break;
         }
     });
 
@@ -450,32 +441,6 @@ async function init() {
     if (!standardProgram || !glassProgram) {
         console.error('Failed to create shader programs');
         return;
-    }
-
-    // Debug quad shader (screen-space)
-    const debugVertSource = `
-        attribute vec2 aPosition;
-        attribute vec2 aTexCoord;
-        varying vec2 vUV;
-        void main() {
-            vUV = aTexCoord;
-            gl_Position = vec4(aPosition, 0.0, 1.0);
-        }
-    `;
-    const debugFragSource = `
-        precision mediump float;
-        uniform sampler2D uTex;
-        varying vec2 vUV;
-        void main() {
-            gl_FragColor = texture2D(uTex, vUV);
-        }
-    `;
-    debugProgram = createProgram(gl, debugVertSource, debugFragSource);
-    
-    if (debugProgram) {
-        console.log('Debug program created successfully');
-    } else {
-        console.error('Failed to create debug program');
     }
 
     // Create procedural texture
@@ -537,36 +502,6 @@ async function init() {
         { location: glassNormLoc, size: 3, bufferIndex: 1 },
         { location: glassUvLoc, size: 2, bufferIndex: 2 }
     ], [planePosBuffer, planeNormBuffer, planeUvBuffer], planeIndexBuffer);
-
-    // Debug quad (top-left corner)
-    if (debugProgram) {
-        const quadPositions = new Float32Array([
-            -0.98,  0.98,
-            -0.60,  0.98,
-            -0.60,  0.60,
-            -0.98,  0.60
-        ]);
-        const quadUVs = new Float32Array([
-            0, 1,
-            1, 1,
-            1, 0,
-            0, 0
-        ]);
-        const quadIndices = new Uint16Array([0, 1, 2, 0, 2, 3]);
-        const quadPosBuffer = createBuffer(gl, quadPositions);
-        const quadUvBuffer = createBuffer(gl, quadUVs);
-        const quadIndexBuffer = createIndexBuffer(gl, quadIndices);
-        debugIndexCount = quadIndices.length;
-
-        const dbgPosLoc = gl.getAttribLocation(debugProgram, 'aPosition');
-        const dbgUvLoc = gl.getAttribLocation(debugProgram, 'aTexCoord');
-        debugVao = createVao(gl, [
-            { location: dbgPosLoc, size: 2, bufferIndex: 0 },
-            { location: dbgUvLoc, size: 2, bufferIndex: 1 }
-        ], [quadPosBuffer, quadUvBuffer], quadIndexBuffer);
-        
-        console.log('Debug VAO created, press F to toggle debug view');
-    }
 
     // Setup transparency slider
     const slider = document.getElementById('transparencySlider');
@@ -775,19 +710,6 @@ function render(time) {
     gl.drawElements(gl.TRIANGLES, planeIndexCount, gl.UNSIGNED_SHORT, 0);
     gl.depthMask(true);
     gl.disable(gl.BLEND);
-
-    // Debug quad overlay (F toggle)
-    if (debugEnabled && debugProgram && debugVao) {
-        gl.disable(gl.DEPTH_TEST);
-        gl.useProgram(debugProgram);
-        gl.bindVertexArray(debugVao);
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, reflectionColorTex);
-        setUniforms(gl, debugProgram, { uTex: 2 });
-        gl.drawElements(gl.TRIANGLES, debugIndexCount, gl.UNSIGNED_SHORT, 0);
-        gl.bindVertexArray(null);
-        gl.enable(gl.DEPTH_TEST);
-    }
 
     requestAnimationFrame(render);
 }
